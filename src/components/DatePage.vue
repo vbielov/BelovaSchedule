@@ -141,7 +141,7 @@ function selectTime(id) {
     </div>
 
     <div class="bookContainer">
-        <button class="bookButton" @click="bookOnClick()">Buchen</button>
+        <button class="bookButton" @click="bookOnClick()">Weiter</button>
     </div>
 </template>
 

@@ -1,99 +1,33 @@
 <script setup>
-import { ref } from 'vue';
 import ServicePage from '@/components/ServicePage.vue';
-import { Service, BACKEND_ADRESS } from '@/components/mainHandler.js';
+import { pageIndex, Pages, previousPage, selectService, selectDate, bookAppointment } from '@/components/mainHandler.js';
 import DatePage from '@/components/DatePage.vue';
 import UserForm from "@/components/UserForm.vue";
 import SuccessPage from '@/components/SuccessPage.vue';
-import axios from 'axios';
-
-var userSelectedService = Service.None;
-var userSelectedDate = undefined;
-var userForm = undefined;
-
-const Pages = {
-  Service: 0,
-  Date: 1,
-  UserForm: 2,
-  Success: 3,
-  Failure: 4
-}
-
-const pageIndex = ref(Pages.Service);
-
-function backOnClick() {
-  pageIndex.value--;
-}
-
-function serviceOnClick(serviceType) {
-  console.log(serviceType);
-  userSelectedService = serviceType;
-  pageIndex.value = Pages.Date;
-}
-
-function formatDateToLocalISO(date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  
-  return year + '-' + month + '-' + day + 'T' + hours + ':' + minutes + ":00.000+01:00";
-}
-
-function dateOnClick(date) {
-  userSelectedDate = formatDateToLocalISO(date);
-  console.log(userSelectedDate);
-  pageIndex.value = Pages.UserForm;
-}
-
-class BookBody {
-  constructor(service, date, form) {
-    this.service = service;
-    this.date = date;
-    this.form = form;
-  }
-}
-function formOnClick(form) {
-  userForm = form;
-
-  // TODO: Vertify all inputs are valid locally to, to reduce load on server and delay
-  const bookRequest = new BookBody(userSelectedService, userSelectedDate, userForm);
-  console.log(bookRequest);
-  axios.post('http://' + BACKEND_ADRESS + '/api/book', bookRequest)
-    .then(response => {
-      pageIndex.value = Pages.Success;
-    })
-    .catch(error => {
-      console.error('POST error:', error);
-      pageIndex.value = Pages.Failure;
-    });
-}
-
 </script>
 
 <template>
   <main>
     <!-- TOP NAVIGATION -->
     <nav>
-      <button v-if="pageIndex != Pages.Service && pageIndex != Pages.Success && pageIndex != Pages.Failure" @click="backOnClick()">
+      <button @click="previousPage" v-if="pageIndex != Pages.Service && pageIndex != Pages.Success && pageIndex != Pages.Failure">
         <span>‹</span>
       </button>
     </nav>
   
     <!-- FIRST PAGE -->
     <div class="page" :show="pageIndex == Pages.Service">
-      <ServicePage :callback="serviceOnClick"/>
+      <ServicePage :callback="selectService"/>
     </div>
 
     <!-- SECOND PAGE -->
     <div class="page" :show="pageIndex == Pages.Date">
-      <DatePage :callback="dateOnClick"/>
+      <DatePage :callback="selectDate"/>
     </div>
 
     <!-- USER FORM -->
     <div class="page" :show="pageIndex == Pages.UserForm">
-      <UserForm :callback="formOnClick"></UserForm>
+      <UserForm :callback="bookAppointment"></UserForm>
     </div>
 
     <!-- END PAGE -->

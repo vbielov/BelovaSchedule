@@ -1,19 +1,19 @@
 <script setup>
-    const props = defineProps(['title']);
+    const props = defineProps(['service']);
 
 </script>
 
 <template>
     <li class="serviceElement">
         <button class="serviceButton">
-            {{ props.title }}
+            {{ props.service.name }}
+            <p>{{ props.service.duration }} {{ props.service.price }}</p>
         </button>
     </li>
 </template>
 
 <style scoped>
     .serviceElement {
-        
         list-style: none;
         margin: 0em 1em 1em;
         text-align: center;
@@ -26,14 +26,20 @@
         padding: 0.75em 1.0em;
         background-color: transparent;
 
+        font-family: "Source Sans Pro", "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
         font-weight: bold;
         font-size: medium;
+
         color: var(--color-white);
         background-color: var(--color-pink);
         transition: background-color 0.25s;
 
         border: 5px solid transparent;
         border-radius: 10px 10px;
+    }
+
+    .serviceButton p {
+        color: var(--color-light-gray)
     }
 
     .serviceButton:hover {

@@ -1,5 +1,5 @@
 <script setup>
-import { Form } from '@/components/mainHandler.js';
+import { Form, userSelectedService, userSelectedDate } from '@/components/mainHandler.js';
 const props = defineProps(['callback']);
 import { ref } from 'vue';
 
@@ -24,26 +24,71 @@ function autoResize() {
     textarea.value.style.height = (textarea.value.scrollHeight + 10).toString() + 'px';
 }
 
+// 26.12 um 11:00 (30Min.) 50,00€
+function formatAppoimentInfo(date, service) {
+    if(date == undefined || service == undefined) {
+        return "Not valid appoiment";
+    }
+    
+    const parsedDate = new Date(date);
+    const day = parsedDate.getDate();
+    const month = parsedDate.getMonth() + 1;
+    const hours = parsedDate.getHours().toString().padStart(2, '0');
+    const minutes = parsedDate.getMinutes().toString().padStart(2, '0');
+
+    return day + '.' + month + " um " + hours + ':' + minutes + " " + service.duration + " " + service.price;
+}
+
+function test(test) {
+    console.log(test);
+    return test;
+}
+
+function validate() {
+    return false;
+}
+
 </script>
 
 <template>
-    <form>
+    <div class="textContainer">
+        <h3 class="title">{{ userSelectedService.name }}</h3>
+        <p class="subTitle">{{ formatAppoimentInfo(userSelectedDate, userSelectedService) }}</p>
+    </div>
+    <form @submit.prevent="book">
         <label for="phone-input">Telefon:</label>
-        <input id="phone-input" type="tel" value="" placeholder="+4911111111111">
+        <input id="phone-input" type="tel" value="" placeholder="e.g., +49123456789" pattern="(\+49)?[1-9][0-9]{1,14}" required>
         <label for="forename-input">Vorname:</label>
-        <input id="forename-input" type="text" value="" placeholder="...">
+        <input id="forename-input" type="text" value="" placeholder="..." required>
         <label for="surname-input">Nachname:</label>
-        <input id="surname-input" type="text" value="" placeholder="...">
+        <input id="surname-input" type="text" value="" placeholder="..." required>
         <label for="comment-input">Kommentar (max. 150 Symbolen):</label>
         <textarea ref="textarea" @input="autoResize" id="comment-input" maxlength="150" placeholder="..."></textarea>
+        <div class="bookContainer">
+            <input type="submit" class="bookButton" value="Termin buchen 📅"/>
+        </div>
     </form>
-    <div class="bookContainer">
-        <button @click="book()" class="bookButton">Termin buchen 📅</button>
-    </div>
+
 
 </template>
 
 <style scoped>
+.textContainer {
+    padding-top: 1em;
+}
+
+.title {
+    display: flex;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.subTitle {
+    display: flex;
+    justify-content: center;
+    color: var(--color-gray);
+}
+
 form {
     display: flex;
     flex-direction: column;
@@ -76,7 +121,7 @@ textarea {
 .bookContainer {
     display: flex;
     justify-content: center;
-    padding: 1em;
+    padding-top: 1em;
 
 }
 
