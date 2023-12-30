@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { ref } from 'vue';
-export const BACKEND_ADRESS = "localhost:3000";
+export const BACKEND_ADRESS = "127.0.0.1:3000";
 
 export const Service = {
     None: {
