@@ -31,21 +31,12 @@ function formatAppoimentInfo(date, service) {
     }
     
     const parsedDate = new Date(date);
-    const day = parsedDate.getDate();
-    const month = parsedDate.getMonth() + 1;
+    const day = parsedDate.getDate().toString().padStart(2, '0');
+    const month = (parsedDate.getMonth() + 1).toString().padStart(2, '0');
     const hours = parsedDate.getHours().toString().padStart(2, '0');
     const minutes = parsedDate.getMinutes().toString().padStart(2, '0');
 
     return day + '.' + month + " um " + hours + ':' + minutes + " " + service.duration + " " + service.price;
-}
-
-function test(test) {
-    console.log(test);
-    return test;
-}
-
-function validate() {
-    return false;
 }
 
 </script>

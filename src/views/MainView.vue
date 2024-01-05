@@ -4,6 +4,7 @@ import { pageIndex, Pages, previousPage, selectService, selectDate, bookAppointm
 import DatePage from '@/components/DatePage.vue';
 import UserForm from "@/components/UserForm.vue";
 import SuccessPage from '@/components/SuccessPage.vue';
+import CalendarPage from '@/components/CalendarPage.vue';
 </script>
 
 <template>
@@ -31,8 +32,12 @@ import SuccessPage from '@/components/SuccessPage.vue';
     </div>
 
     <!-- END PAGE -->
-    <div class="page" :show="pageIndex > 2">
+    <div class="page" :show="pageIndex == Pages.Success || pageIndex == Pages.Failure">
       <SuccessPage :state="pageIndex == Pages.Success"></SuccessPage>
+    </div>
+
+    <div class="page" :show="pageIndex == Pages.Calendar">
+      <CalendarPage></CalendarPage>
     </div>
   </main>
 

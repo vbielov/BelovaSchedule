@@ -36,7 +36,8 @@ export const Pages = {
     Date: 1,
     UserForm: 2,
     Failure: 3,
-    Success: 4
+    Success: 4,
+    Calendar: 5
 }
 
 export class Form {
@@ -59,10 +60,14 @@ class BookBody {
 export const pageIndex = ref(Pages.Service);
 
 export function previousPage() {
+    if(pageIndex.value == Pages.Calendar) {
+        toPage(Pages.Date);
+        return;
+    }
     pageIndex.value--;
 }
 
-function toPage(page) {
+export function toPage(page) {
     pageIndex.value = page;
 }
 
@@ -76,9 +81,21 @@ function formatDateToLocalISO(date) {
     return year + '-' + month + '-' + day + 'T' + hours + ':' + minutes + ":00.000+01:00";
 }
 
-export var userSelectedService = ref(Service.None);
-export var userSelectedDate = ref(undefined);
-export var userForm = ref(undefined);
+export const userSelectedService = ref(Service.None);
+export const userSelectedDay = ref(undefined);
+export const userSelectedDate = ref(undefined);
+export const userForm = ref(undefined);
+
+export const eventOnSelectDay = new Event("onSelectDay");
+export function selectDay(date) {
+    userSelectedDay.value = date;
+    userSelectedDay.value.setHours(0);
+    userSelectedDay.value.setMinutes(0);
+    userSelectedDay.value.setSeconds(0);
+    userSelectedDay.value.setMilliseconds(0);
+    document.dispatchEvent(eventOnSelectDay);
+}
+selectDay(new Date(Date.now()));
 
 export function selectService(service) {
     userSelectedService.value = service;
@@ -90,6 +107,10 @@ export function selectDate(date) {
     userSelectedDate.value = formatDateToLocalISO(date);
     console.log(userSelectedDate.value);
     toPage(Pages.UserForm);
+}
+
+export function openCalendar() {
+    toPage(Pages.Calendar);
 }
 
 export function bookAppointment(form) {

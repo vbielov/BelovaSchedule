@@ -2,15 +2,8 @@
 import { ref } from 'vue';
 import axios from 'axios';
 import LoadingSpinner from './LoadingSpinner.vue';
-import { BACKEND_ADRESS } from './mainHandler.js';
+import { BACKEND_ADRESS, openCalendar, userSelectedDay, selectDay } from './mainHandler.js';
 const props = defineProps(['callback']);
-
-var selectDay = ref(new Date(Date.now()));
-
-selectDay.value.setHours(0);
-selectDay.value.setMinutes(0);
-selectDay.value.setSeconds(0);
-selectDay.value.setMilliseconds(0);
 
 var selectedTime = undefined;
 
@@ -28,12 +21,18 @@ function getSubTitle(date) {
 }
 
 function pushDay(sign) {
-    var currentDay = selectDay.value.getDate();
-    var newDate = new Date(selectDay.value);
+    var currentDay = userSelectedDay.value.getDate();
+    var newDate = new Date(userSelectedDay.value);
     newDate.setDate(currentDay + sign);
-    selectDay.value = newDate;
-    loadTimes(newDate);
+    selectDay(newDate);
+    selectedTime = undefined;
 }
+
+function refreshTimes() {
+    loadTimes(userSelectedDay);
+}
+
+document.addEventListener("onSelectDay", () => refreshTimes());
 
 function bookOnClick() {
     if(selectedTime) {
@@ -64,7 +63,7 @@ var loadedTimes = ref([]);
 // input: 09:00:00
 function parseLocalTimeStringToDate(time) {
     const timeArr = time.split(':');
-    var date = new Date(selectDay.value);
+    var date = new Date(userSelectedDay.value);
     date.setHours(timeArr[0]);
     date.setMinutes(timeArr[1]);
     date.setSeconds(0);
@@ -77,11 +76,10 @@ function loadTimes(date) {
     // Fetch data from your backend API
     loadingState.value = FetchStatus.Loading;
     const params = {
-        date: formatDate(selectDay.value)
+        date: formatDate(userSelectedDay.value)
     }
     axios.get("http://" + BACKEND_ADRESS + "/api/freeTime", { params })
         .then((response) => {
-            selectedTime = undefined;
             var newTimes = []
             for(var i = 0; i < response.data.length; i++) {
                 var dateOption = parseLocalTimeStringToDate(response.data[i].fromTime);
@@ -101,7 +99,7 @@ function loadTimes(date) {
             loadingState.value = FetchStatus.Error;
         });
 }
-loadTimes(selectDay);
+loadTimes(userSelectedDay);
 
 // NOTE: Made with id to handle isSelected, otherwise would be easier just to pass a date.
 function selectTime(id) {
@@ -117,12 +115,12 @@ function selectTime(id) {
 
 <template>
     <div class="header">
-        <button @click="pushDay(-1)">‹</button>
-        <div class="title">
-            <h3>  {{ getTitleHeader(selectDay) }} </h3>
-            <p> {{ getSubTitle(selectDay) }} </p>
-        </div>
-        <button @click="pushDay(1)">›</button>
+        <button @click="pushDay(-1)" class="chevron">‹</button>
+        <button @click="openCalendar()" class="title">
+            <h3>  {{ getTitleHeader(userSelectedDay) }} </h3>
+            <p> {{ getSubTitle(userSelectedDay) }} </p>
+        </button>
+        <button @click="pushDay(1)" class="chevron">›</button>
     </div>
 
     <div class="timesContainer">
@@ -154,7 +152,7 @@ function selectTime(id) {
         text-wrap: nowrap;
     }
 
-    .header button {
+    .chevron {
         height: 0px;
         line-height: 0px;
         margin: 0.5em;
@@ -167,10 +165,18 @@ function selectTime(id) {
     }
 
     .title {
-        margin: 1em;
         display: flex;
         flex-direction: column;
         align-items: center;
+        margin-bottom: 5em;
+        margin: 1em;
+
+        background-color: transparent;
+        border: none;
+        cursor: pointer;
+
+        font-family: "Source Sans Pro", "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+        font-size: 1em;
     }
 
     .title h3 {
