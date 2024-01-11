@@ -21,7 +21,12 @@ import CalendarPage from '@/components/CalendarPage.vue';
       <ServicePage :callback="selectService"/>
     </div>
 
-    <!-- SECOND PAGE -->
+    <!-- CALENDAR PAGE -->
+    <div class="page" :show="pageIndex == Pages.Calendar">
+      <CalendarPage></CalendarPage>
+    </div>
+
+    <!-- TIME PAGE -->
     <div class="page" :show="pageIndex == Pages.Date">
       <DatePage :callback="selectDate"/>
     </div>
@@ -34,10 +39,6 @@ import CalendarPage from '@/components/CalendarPage.vue';
     <!-- END PAGE -->
     <div class="page" :show="pageIndex == Pages.Success || pageIndex == Pages.Failure">
       <SuccessPage :state="pageIndex == Pages.Success"></SuccessPage>
-    </div>
-
-    <div class="page" :show="pageIndex == Pages.Calendar">
-      <CalendarPage></CalendarPage>
     </div>
   </main>
 
@@ -80,7 +81,7 @@ import CalendarPage from '@/components/CalendarPage.vue';
     background-color: var(--color-light-gray);
 
     display: block;
-    max-height: 500px;
+    max-height: 550px;
     overflow: hidden;
     transition: max-height 1s;
   }

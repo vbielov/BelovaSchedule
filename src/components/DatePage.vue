@@ -2,10 +2,8 @@
 import { ref } from 'vue';
 import axios from 'axios';
 import LoadingSpinner from './LoadingSpinner.vue';
-import { BACKEND_ADRESS, openCalendar, userSelectedDay, selectDay } from './mainHandler.js';
+import { BACKEND_ADRESS, openCalendar, userSelectedDay, selectDay, userSelectedDate } from './mainHandler.js';
 const props = defineProps(['callback']);
-
-var selectedTime = undefined;
 
 function getTitleHeader(date) {
     const WEEK_DAYS = [
@@ -25,21 +23,18 @@ function pushDay(sign) {
     var newDate = new Date(userSelectedDay.value);
     newDate.setDate(currentDay + sign);
     selectDay(newDate);
-    selectedTime = undefined;
 }
 
 function refreshTimes() {
-    loadTimes(userSelectedDay);
+    userSelectedDate.value = undefined;
+    loadTimes(userSelectedDay.value);
 }
 
 document.addEventListener("onSelectDay", () => refreshTimes());
 
 function bookOnClick() {
-    if(selectedTime) {
-        props.callback(selectedTime);
-    }
-    else {
-        alert("Kein Zeit gewählt!");
+    if(userSelectedDate.value) {
+        props.callback();
     }
 }
 
@@ -76,7 +71,7 @@ function loadTimes(date) {
     // Fetch data from your backend API
     loadingState.value = FetchStatus.Loading;
     const params = {
-        date: formatDate(userSelectedDay.value)
+        date: formatDate(date)
     }
     axios.get("http://" + BACKEND_ADRESS + "/api/freeTime", { params })
         .then((response) => {
@@ -97,18 +92,14 @@ function loadTimes(date) {
             console.error(error);
             FetchStatus.Error = error.code;
             loadingState.value = FetchStatus.Error;
-        });
+        }
+    );
 }
-loadTimes(userSelectedDay);
+loadTimes(userSelectedDay.value);
 
 // NOTE: Made with id to handle isSelected, otherwise would be easier just to pass a date.
-function selectTime(id) {
-    for(var i = 0; i < loadedTimes.value.length; i++) {
-        loadedTimes.value[i].isSelected = id == loadedTimes.value[i].id;
-        if(id == loadedTimes.value[i].id) {
-            selectedTime = loadedTimes.value[i].date;
-        }
-    }
+function selectTime(date) {
+    userSelectedDate.value = date;
 }
 
 </script>
@@ -116,10 +107,10 @@ function selectTime(id) {
 <template>
     <div class="header">
         <button @click="pushDay(-1)" class="chevron">‹</button>
-        <button @click="openCalendar()" class="title">
+        <div class="title">
             <h3>  {{ getTitleHeader(userSelectedDay) }} </h3>
             <p> {{ getSubTitle(userSelectedDay) }} </p>
-        </button>
+        </div>
         <button @click="pushDay(1)" class="chevron">›</button>
     </div>
 
@@ -130,8 +121,8 @@ function selectTime(id) {
 
         <button class="timeButton" 
                 v-for="loadedTime in loadedTimes"
-                @click="selectTime(loadedTime.id)" 
-                :isSelected="loadedTime.isSelected"
+                @click="selectTime(loadedTime.date)" 
+                :isSelected="userSelectedDate && userSelectedDate.getTime() == loadedTime.date.getTime()"
         >
             {{ loadedTime.time }}
         </button>
@@ -139,7 +130,7 @@ function selectTime(id) {
     </div>
 
     <div class="bookContainer">
-        <button class="bookButton" @click="bookOnClick()">Weiter</button>
+        <button class="bookButton" @click="bookOnClick()" :isEnabled="userSelectedDate != undefined">{{ userSelectedDate ? "Weiter" : "Wählen Sie bitte Zeit" }}</button>
     </div>
 </template>
 
@@ -170,13 +161,6 @@ function selectTime(id) {
         align-items: center;
         margin-bottom: 5em;
         margin: 1em;
-
-        background-color: transparent;
-        border: none;
-        cursor: pointer;
-
-        font-family: "Source Sans Pro", "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
-        font-size: 1em;
     }
 
     .title h3 {
@@ -198,15 +182,25 @@ function selectTime(id) {
         padding: 0.25em 1em;
         font-weight: bold;
         font-size: large;
-        background-color: var(--color-pink);
+        background-color: var(--color-cold-white);
         color: var(--color-white);
         border: 5px solid transparent;
         border-radius: 10px 10px;
-        cursor: pointer;
-        transition: background-color 0.25s;
+        color: var(--color-gray);
+        width: 225px;
+        text-wrap: nowrap;
+        overflow: hidden;
+        transition: width 0.1s ease-out;
     }
 
-    .bookButton:hover {
+    .bookButton[isEnabled=true] {
+        background-color: var(--color-pink);
+        cursor: pointer;
+        color: var(--color-white);
+        width: 100px;
+    }
+
+    .bookButton:hover[isEnabled=true] {
         background-color: var(--color-red);
     }
 

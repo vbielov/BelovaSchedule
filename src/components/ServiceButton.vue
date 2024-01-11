@@ -1,5 +1,13 @@
 <script setup>
-    const props = defineProps(['service']);
+const props = defineProps(['service']);
+
+function formatDuration(minutes) {
+    return "(" + minutes + " min.)";
+}
+
+function formatPrice(price) {
+    return price.toFixed(2).replace('.', ',') + '€';
+}
 
 </script>
 
@@ -7,7 +15,7 @@
     <li class="serviceElement">
         <button class="serviceButton">
             {{ props.service.name }}
-            <p>{{ props.service.duration }} {{ props.service.price }}</p>
+            <p>{{ formatDuration(props.service.durationMinutes) }} {{ formatPrice(props.service.price) }}</p>
         </button>
     </li>
 </template>

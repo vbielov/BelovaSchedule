@@ -5,16 +5,20 @@ import { ref } from 'vue';
 
 function book() {
     const phoneElement = document.getElementById('phone-input');
+    const emailElement = document.getElementById('email-input');
     const forenameElement = document.getElementById('forename-input');
     const surnameElement = document.getElementById('surname-input');
     const commentElement = document.getElementById('comment-input');
     
     const phoneValue = phoneElement ? phoneElement.value : '';
+    const emailValue = emailElement ? emailElement.value : '';
     const forenameValue = forenameElement ? forenameElement.value : '';
     const surnameValue = surnameElement ? surnameElement.value : '';
     const commentValue = commentElement ? commentElement.value : '';
     
-    props.callback(new Form(phoneValue, forenameValue, surnameValue, commentValue));
+    if(phoneValue != '' && emailValue != '' && forenameValue != '' && surnameValue != '') {
+        props.callback(new Form(phoneValue, emailValue, forenameValue, surnameValue, commentValue));
+    }
 }
 
 const textarea = ref(null)
@@ -25,18 +29,25 @@ function autoResize() {
 }
 
 // 26.12 um 11:00 (30Min.) 50,00€
+function formatDuration(minutes) {
+    return "(" + minutes + " min.)";
+}
+
+function formatPrice(price) {
+    return price.toFixed(2).replace('.', ',') + '€';
+}
+
 function formatAppoimentInfo(date, service) {
     if(date == undefined || service == undefined) {
         return "Not valid appoiment";
     }
     
-    const parsedDate = new Date(date);
-    const day = parsedDate.getDate().toString().padStart(2, '0');
-    const month = (parsedDate.getMonth() + 1).toString().padStart(2, '0');
-    const hours = parsedDate.getHours().toString().padStart(2, '0');
-    const minutes = parsedDate.getMinutes().toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
 
-    return day + '.' + month + " um " + hours + ':' + minutes + " " + service.duration + " " + service.price;
+    return day + '.' + month + " um " + hours + ':' + minutes + " " + formatDuration(service.durationMinutes) + " " + formatPrice(service.price);
 }
 
 </script>
@@ -49,6 +60,8 @@ function formatAppoimentInfo(date, service) {
     <form @submit.prevent="book">
         <label for="phone-input">Telefon:</label>
         <input id="phone-input" type="tel" value="" placeholder="e.g., +49123456789" pattern="(\+49)?[1-9][0-9]{1,14}" required>
+        <label for="email-input">E-mail:</label>
+        <input id="email-input" type="text" value="" placeholder="..." required>
         <label for="forename-input">Vorname:</label>
         <input id="forename-input" type="text" value="" placeholder="..." required>
         <label for="surname-input">Nachname:</label>
@@ -56,7 +69,8 @@ function formatAppoimentInfo(date, service) {
         <label for="comment-input">Kommentar (max. 150 Symbolen):</label>
         <textarea ref="textarea" @input="autoResize" id="comment-input" maxlength="150" placeholder="..."></textarea>
         <div class="bookContainer">
-            <input type="submit" class="bookButton" value="Termin buchen 📅"/>
+            <!-- 📅 -->
+            <input type="submit" class="bookButton" value="Termin buchen"/> 
         </div>
     </form>
 
