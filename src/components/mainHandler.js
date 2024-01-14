@@ -88,7 +88,7 @@ export function bookAppointment(form) {
     const bookRequest = new BookBody(userSelectedService.value.id, formatDateToLocalISO(userSelectedDate.value), userForm.value);
     console.log(bookRequest);
 
-    axios.post('http://' + BACKEND_ADRESS + '/api/book', bookRequest)
+    axios.post('https://' + BACKEND_ADRESS + '/api/book', bookRequest)
         .then(response => {
             toPage(Pages.Success);
         })

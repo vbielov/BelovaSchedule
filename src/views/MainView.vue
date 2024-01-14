@@ -41,11 +41,16 @@ import CalendarPage from '@/components/CalendarPage.vue';
       <SuccessPage :state="pageIndex == Pages.Success"></SuccessPage>
     </div>
   </main>
+  <footer class="footer">
+    <a href="https://www.belova-nagelstudio.de/">© BELOVA NAGELSTUDIO</a>
+  </footer>
 
 </template>
 
 <style scoped>
   main {
+    max-width: 400px;
+    margin-top: 2rem;
     border: 5px solid transparent;
     border-radius: 20px 20px;
     overflow: hidden;
@@ -89,5 +94,10 @@ import CalendarPage from '@/components/CalendarPage.vue';
   .page[show=false] {
     max-height: 0px;
     transition: max-height 0.5s;
+  }
+
+  .footer {
+    display: flex;
+    justify-content: center;
   }
 </style>

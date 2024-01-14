@@ -15,7 +15,7 @@ const FetchStatus = {
 const loadingState = ref(FetchStatus.Loading);
 
 function loadServicesDB() {
-  axios.get("http://" + BACKEND_ADRESS + "/api/services")
+  axios.get("https://" + BACKEND_ADRESS + "/api/services")
         .then((response) => {
           let servicesList = [];
           for(var i = 0; i < response.data.length; i++) {
@@ -43,7 +43,7 @@ loadServicesDB();
 <template>
   <div class="textContainer">
     <h3 class="title">Wählen Sie einen Dienst aus</h3>
-    <p class="subTitle">⚑ Blutenburgstraße 122, 80634 München</p>
+    <a href="https://maps.app.goo.gl/rnrssGebSmjSP5xh6" class="subTitle">⚑ Blutenburgstraße 122, 80634 München</a>
   </div>
   <div class="loadingSpinnerContainer">
     <LoadingSpinner class="loadingSpinner" v-show="loadingState == FetchStatus.Loading"/>

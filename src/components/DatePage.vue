@@ -73,7 +73,7 @@ function loadTimes(date) {
     const params = {
         date: formatDate(date)
     }
-    axios.get("http://" + BACKEND_ADRESS + "/api/freeTime", { params })
+    axios.get("https://" + BACKEND_ADRESS + "/api/freeTime", { params })
         .then((response) => {
             var newTimes = []
             for(var i = 0; i < response.data.length; i++) {
