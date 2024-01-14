@@ -12,9 +12,11 @@ function login() {
     const username = formData.value.username;
     const password = formData.value.password;
 
-    axios.post("https://" + BACKEND_ADRESS + "/api/login", { username, password })
+    axios.defaults.withCredentials = true;
+    axios.post("https://" + BACKEND_ADRESS + "/api/login", { username, password }, { withCredentials: true, crossDomain: true })
         .then(response => {
             // Handle successful login
+            document.cookie = "sessionKey=" + response.data;
             console.log(response.data);
         })
         .catch(error => {
