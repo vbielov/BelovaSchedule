@@ -17,6 +17,7 @@ function login() {
         .then(response => {
             // Handle successful login
             document.cookie = "sessionKey=" + response.data;
+            window.location.replace("/team-schedule");
             console.log(response.data);
         })
         .catch(error => {
