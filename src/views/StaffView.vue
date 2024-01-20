@@ -2,13 +2,14 @@
 import axios from 'axios';
 import { ref } from 'vue';
 import { BACKEND_ADRESS } from '@/components/mainHandler';
+import CalendarPage from '@/components/CalendarPage.vue';
 
 const message = ref("");
 var staffMembers = ref([
     { id: 0, name: "Inna" },
     { id: 0, name: "Yulia" },
     { id: 0, name: "Ira" },
-    { id: 0, name: "Annya" },
+    { id: 0, name: "Annya" }
 ]);
 
 axios.get("https://" + BACKEND_ADRESS + "/api/user", { withCredentials: true })
@@ -71,6 +72,12 @@ const appoinments = [
         fromTime: "2024-01-15 9:00:00",
         toTime: "2024-01-15 12:00:00",
         name: "Somename"
+    },
+    {
+        teamMemberID: 0,
+        fromTime: "2024-01-15 14:00:00",
+        toTime: "2024-01-15 15:00:00",
+        name: "Somename"
     }
 ];
 
@@ -98,7 +105,62 @@ function calculateTopOffsetOfAppoiment(fromTimeString) {
     let startOfDay = new Date(fromTimeString).setHours(startWorkingDay, 0, 0, 0);
     let differenceMS = fromTimeValue - startOfDay;
     let differenceHours = differenceMS / 1000 / 60 / 60;
-    return differenceHours * rowHeightForHour + rowHeightForHour / 2;
+    return differenceHours * rowHeightForHour + rowHeightForHour / 4;
+}
+
+function calculateTopOffsetOfTimeLine() {
+    const dateNow = new Date(Date.now());
+    // const dateNow = new Date(new Date(0, 0, 0, 15, 30, 0));
+    let hours = 0;
+    hours += dateNow.getHours();
+    hours += dateNow.getMinutes() / 60;
+    hours += dateNow.getSeconds() / 60 / 60;
+    hours -= startWorkingDay;
+    timeLineTopOffset.value = hours * rowHeightForHour + rowHeightForHour - 5;
+}
+
+const timeLineTopOffset = ref(0);
+calculateTopOffsetOfTimeLine();
+setInterval(() => calculateTopOffsetOfTimeLine(), 1000);
+
+function isTimeLineVisible() {
+    var dateNow = new Date(Date.now());
+    let hours = 0;
+    hours += dateNow.getHours();
+    hours += dateNow.getMinutes() / 60;
+    hours += dateNow.getSeconds() / 60 / 60;
+    dateNow = new Date(Date.now());
+    dateNow.setHours(0, 0, 0, 0);
+    return userSelectedDate.value.getTime() === dateNow.getTime() && hours > startWorkingDay && hours < endWorkingDay;
+    // return true;
+}
+
+const hideCalendar = ref(true);
+
+function toggleOpenCalendar() {
+    hideCalendar.value = !hideCalendar.value;
+}
+
+const dateNow = new Date(Date.now());
+dateNow.setHours(0, 0, 0, 0);
+const userSelectedDate = ref(dateNow);
+
+function selectDay(date) {
+    if(hideCalendar.value == false) {
+        hideCalendar.value = true;
+    }
+    console.log(date);
+    userSelectedDate.value = date;
+}
+
+function formatSelectedDate(date) {
+    const WEEK_DAYS = [
+        "Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"
+    ];
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return WEEK_DAYS[date.getDay()] + " " + day + "." + month + " ";
 }
 
 </script>
@@ -106,40 +168,58 @@ function calculateTopOffsetOfAppoiment(fromTimeString) {
 <template>
     <div class="staffPage">
         <nav class="nav">
-            <p>{{ message }}</p>
-            <button class="logoutButton" @click="logout">Logout</button>
+            <button class="navButton" @click="logout">Logout</button>
+            <button class="navButton calendarButton" @click="toggleOpenCalendar">{{ formatSelectedDate(userSelectedDate) }} &nbsp; 📅</button>
         </nav>
+        <div class="contentContainer">
+            <table>
+                <tr class="timeLine" v-if="isTimeLineVisible()" :style="
+                    'top: ' + timeLineTopOffset + 'px; '
+                "></tr>
+                <tr>
+                    <th></th>
+                    <th v-for="staff in staffMembers">{{ staff.name }}</th>
+                </tr>
+                <tr v-for="timeRow in generateDayTime()">
+                    <th><p class="timeHeader" :isFullHour="timeRow.isFullHour">{{ timeRow.time }}</p></th>
+                    <td v-for="staffID in Array.from(Array(staffMembers.length).keys())">
+                        
+                        <div style="position: relative; width: 100%; height: 0px; display: flex; align-items: center;">
+                            <button v-if="timeRow.id == 0" style="font-size: 1.5em; font-weight: bold; color: var(--color-gray); position: absolute; display: flex; width: 100%; justify-content: center; align-items: center;">+</button>
+                        </div>
 
-        <table>
-            <tr>
-                <th><button @click="test">📅</button></th>
-                <th v-for="staff in staffMembers">{{ staff.name }}</th>
-            </tr>
-            <tr v-for="timeRow in generateDayTime()">
-                <th><p class="timeHeader" :isFullHour="timeRow.isFullHour">{{ timeRow.time }}</p></th>
-                <td v-for="staffID in Array.from(Array(staffMembers.length).keys())">
-                    <div v-if="timeRow.id == 0" v-for="appoiment in getAppoinments(staffID)" class="appoinmentContainer">
-                        <button class="appoinment" :style="
-                            'height: ' + calculateHeightOfAppoinment(appoiment.fromTime, appoiment.toTime) + 'px; top: ' + calculateTopOffsetOfAppoiment(appoiment.fromTime) + 'px; '
-                        ">
-                            11:15-13:05 <br/>
-                            <h3>Helen</h3>
-                            +1(111) 111-1111 <br/> 
-                            Gel manicure
-                        </button>
-                    </div>
-                </td>
-            </tr>
-        </table>
-
+                        <div v-if="timeRow.id == 0" v-for="appoiment in getAppoinments(staffID)" class="appoinmentContainer">
+                            <button class="appoinment" :style="
+                                'height: ' + calculateHeightOfAppoinment(appoiment.fromTime, appoiment.toTime) + 'px; top: ' + calculateTopOffsetOfAppoiment(appoiment.fromTime) + 'px; '
+                            ">
+                                11:15-13:05 <br/>
+                                <h3>Helen</h3>
+                                +1(111) 111-1111 <br/> 
+                                Gel manicure
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+            <div class="sidePanel">
+                <CalendarPage :callback="selectDay" :userSelectedDay="userSelectedDate"></CalendarPage>
+            </div>
+        </div>
+    </div>
+    <div class="mobileCalendarContainer" :hide=hideCalendar>
+        <div class="mobileCalendar">          
+            <CalendarPage :callback="selectDay" :userSelectedDay="userSelectedDate"></CalendarPage>
+        </div>
     </div>
 </template>
 
 <style scoped>
     .staffPage {
+        display: flex;
+        flex-direction: column;
         width: 100%;
         background-color: var(--color-light-gray);
-        /* color: var(--color-dark-blue); */
+        min-height: 100vh;
     }
 
     nav {
@@ -152,7 +232,7 @@ function calculateTopOffsetOfAppoiment(fromTimeString) {
         background-color: var(--color-cold-white);
     }
 
-    .logoutButton {
+    .navButton {
         background-color: var(--color-pink);
         padding: 0.75em 1em;
         border-radius: 10px;
@@ -170,6 +250,9 @@ function calculateTopOffsetOfAppoiment(fromTimeString) {
         margin: 1.0em;
         border-spacing: 0px;
         border-collapse: collapse;
+        max-height: 100%;
+        align-self: start;
+        position: relative;
     }
 
     tr {
@@ -200,17 +283,18 @@ function calculateTopOffsetOfAppoiment(fromTimeString) {
         border-radius: 10px;
         text-align: start;
         display: flex;
-        justify-content: start;
+        justify-content: flex-start;
         flex-direction: column;
         color: var(--color-white);
         font-size: 1em;
         position: absolute;
+        /* max-height: 0px; */
     }
 
     .appoinmentContainer {
         position: relative;
         width: 100%;
-        height: 100%;
+        max-height: 0px;
     }
 
     .timeHeader {
@@ -221,5 +305,62 @@ function calculateTopOffsetOfAppoiment(fromTimeString) {
     .timeHeader[isFullHour=false] {
         color: var(--color-gray);
         font-size: 0.9em;
+    }
+
+    .contentContainer {
+        display: flex;
+    }
+
+    .sidePanel {
+        display: flex;
+        border-left: 2px solid var(--color-cold-white);
+    }
+
+    .calendarButton {
+        display: none;
+    }
+    
+    .mobileCalendarContainer {
+        position: fixed;
+        height: 100%;
+        width: 100%;
+        justify-content: center;
+        align-items: flex-start;
+        display: none;
+    }
+    .mobileCalendar {
+        background-color: var(--color-light-gray);
+        border: 2px solid var(--color-cold-white);
+        border-radius: 15px;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        margin: 2em;
+    }
+
+    @media only screen and (max-width: 800px) {
+        .sidePanel {
+            display: none;
+        }
+
+        .calendarButton {
+            display: block;
+        }
+
+        .mobileCalendarContainer[hide=false] {
+            display: flex;
+        }
+    }
+
+    .timeLine {
+        position: absolute;
+        width: 100%;
+        background-color: var(--color-red);
+        opacity: 0.25;
+        height: 10px;
+        border-radius: 15px;
+        z-index: 5;
+        transition: top 0.5s;
     }
 </style>

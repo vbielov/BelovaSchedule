@@ -1,9 +1,10 @@
 <script setup>
 import { ref } from 'vue';
-import { userSelectedDay, selectDay } from './mainHandler';
+const props = defineProps(['callback', 'userSelectedDay']);
 
 const calendarRows = ref([]);
-const calendarMonth = ref(new Date(userSelectedDay.value));
+const calendarMonth = ref(new Date(props.userSelectedDay));
+calendarMonth.value.setDate(1);
 
 // proper % for negative values
 function mod(x, y) {
@@ -29,7 +30,8 @@ function generateCalender() {
         calendarRows.value.push(calendarDays);
     }
 }
-generateCalender();
+generateCalender()
+document.addEventListener("onSelectDay", () => generateCalender());
 
 function pushMonth(sign) {
     const tempDate = new Date(calendarMonth.value);
@@ -41,7 +43,7 @@ function pushMonth(sign) {
 
 function selectCalendarDay(id) {
     const button = calendarRows.value[Math.floor(id / 7)][id % 7];
-    selectDay(button.date);
+    props.callback(button.date);
 }
 
 function isToday(date) {
@@ -97,7 +99,7 @@ function getTitle(date) {
                     class="calendarButton" 
                     @click="selectCalendarDay(calendarButton.id)" 
                     :selectedMonth="calendarButton.date.getMonth() === calendarMonth.getMonth()"
-                    :selectedDay="calendarButton.date.getTime() === userSelectedDay.getTime()"
+                    :selectedDay="calendarButton.date.getTime() === props.userSelectedDay.getTime()"
                     :isToday="isToday(calendarButton.date)"
                     :isWeekend="calendarButton.date.getDay() === 0"
                 >

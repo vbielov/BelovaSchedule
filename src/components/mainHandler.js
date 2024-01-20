@@ -56,6 +56,7 @@ export const userForm = ref(undefined);
 
 export const eventOnSelectDay = new Event("onSelectDay");
 export function selectDay(date) {
+    console.log(date);
     userSelectedDay.value = date;
     userSelectedDay.value.setHours(0, 0, 0, 0);
     document.dispatchEvent(eventOnSelectDay);

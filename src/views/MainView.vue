@@ -1,6 +1,6 @@
 <script setup>
 import ServicePage from '@/components/ServicePage.vue';
-import { pageIndex, Pages, previousPage, selectService, selectDate, bookAppointment } from '@/components/mainHandler.js';
+import { pageIndex, Pages, previousPage, selectService, selectDate, bookAppointment, selectDay, userSelectedDay } from '@/components/mainHandler.js';
 import DatePage from '@/components/DatePage.vue';
 import UserForm from "@/components/UserForm.vue";
 import SuccessPage from '@/components/SuccessPage.vue';
@@ -23,7 +23,7 @@ import CalendarPage from '@/components/CalendarPage.vue';
 
     <!-- CALENDAR PAGE -->
     <div class="page" :show="pageIndex == Pages.Calendar">
-      <CalendarPage></CalendarPage>
+      <CalendarPage :callback="selectDay" :userSelectedDay="userSelectedDay"></CalendarPage>
     </div>
 
     <!-- TIME PAGE -->
