@@ -8,6 +8,17 @@ const formData = ref({
     password: ''
 });
 
+if(document.cookie != null && document.cookie != undefined && document.cookie.indexOf("sessionKey=") != -1) {
+    axios.get("https://" + BACKEND_ADRESS + "/api/user", { withCredentials: true })
+    .then((response) => {
+        console.log(response.data);
+        window.location.replace("/team-schedule");
+    })
+    .catch((e) => {
+
+    });
+}
+
 function login() {
     const username = formData.value.username;
     const password = formData.value.password;
@@ -16,7 +27,7 @@ function login() {
     axios.post("https://" + BACKEND_ADRESS + "/api/login", { username, password }, { withCredentials: true, crossDomain: true })
         .then(response => {
             // Handle successful login
-            document.cookie = "sessionKey=" + response.data;
+            document.cookie = "sessionKey=" + response.data + ";";
             window.location.replace("/team-schedule");
             console.log(response.data);
         })
