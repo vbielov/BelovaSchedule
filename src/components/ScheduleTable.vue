@@ -1,17 +1,6 @@
 <script setup>
 import { ref } from 'vue';
-import axios from 'axios';
-import { BACKEND_ADRESS } from '@/components/mainHandler';
-const props = defineProps(['userSelectedDate', 'team', 'appointments']);
-
-const services = ref([]);
-axios.get("https://" + BACKEND_ADRESS + "/api/services", { withCredentials: true })
-    .then((response) => {
-        services.value = response.data;
-    })
-    .catch((error) => {
-        console.error(error);
-    });
+const props = defineProps(['onAddAppointment', 'onClickAppointment', 'userSelectedDate', 'team', 'appointments', 'services']);
 
 const startWorkingDay = 9;
 const endWorkingDay = 18;
@@ -33,7 +22,7 @@ function generateDayTime() {
     return returnArr;
 }
 
-function getAppoinments(staffID) {
+function getAppointments(staffID) {
     const appoinemntsToReturn = [];
     for(var i = 0; i < props.appointments.length; i++) {
         if(props.appointments[i].teamMemberID == staffID) {
@@ -43,13 +32,27 @@ function getAppoinments(staffID) {
     return appoinemntsToReturn;
 }
 
+function getFreeAppointments() {
+    const appoinemntsToReturn = [];
+    for(var i = 0; i < props.appointments.length; i++) {
+        let id = props.appointments[i].teamMemberID;
+        if(id === undefined || id == null || id == 0) {
+            appoinemntsToReturn.push(props.appointments[i]);
+        }
+    }
+    return appoinemntsToReturn;
+}
+
 const rowHeightForHour = 100;
-function calculateHeightOfAppoinment(fromTimeString, toTimeString) {
+function calculateHeightOfAppointment(fromTimeString, toTimeString) {
     let fromTimeValue = new Date(fromTimeString).getTime();
     let toTimeValue = new Date(toTimeString).getTime();
     let differenceMS = toTimeValue - fromTimeValue;
     let differenceHours = differenceMS / 1000 / 60 / 60;
-    return differenceHours * rowHeightForHour;
+    let result = differenceHours * rowHeightForHour;
+    let maxHeight = (endWorkingDay - startWorkingDay) * rowHeightForHour;
+    maxHeight -= calculateTopOffsetOfAppointment(fromTimeString) - rowHeightForHour / 4
+    return Math.min(result, maxHeight);
 }
 
 function calculateTopOffsetOfAppointment(fromTimeString) {
@@ -94,6 +97,14 @@ function formatTime(dateString) {
     return hours + ":" + minutes;
 }
 
+const defaultValues = {
+    name: ""
+}
+
+const mousePosition = ref({x: 0, y: 0});
+// addEventListener('mousemove', (event) => {
+//     mousePosition.value = { x: event.pageX, y: event.pageY };
+// }, false);
 
 </script>
 
@@ -104,24 +115,41 @@ function formatTime(dateString) {
         "></tr>
         <tr>
             <th></th>
-            <th v-for="staff in props.team">{{ staff.displayName }}</th>
+            <th>Frei</th>
+            <th v-for="staff in props.team" :key="staff.id">{{ staff.displayName }}</th>
         </tr>
         <tr v-for="timeRow in generateDayTime()">
             <th><p class="timeHeader" :isFullHour="timeRow.isFullHour">{{ timeRow.time }}</p></th>
-            <td v-for="staff in props.team">
-                
+            <td>
                 <div class="addAppointmentContainer">
-                    <button class="addAppointmentButton" v-if="timeRow.id == 0">+</button>
+                    <button class="addAppointmentButton" v-if="timeRow.id == 0" @click="props.onAddAppointment(0)">+</button>
                 </div>
-
-                <div v-if="timeRow.id == 0" v-for="appointment in getAppoinments(staff.id)" class="appoinmentContainer">
-                    <button class="appoinment" :style="
-                        'height: ' + calculateHeightOfAppoinment(appointment.fromTime, appointment.toTime) + 'px; top: ' + calculateTopOffsetOfAppointment(appointment.fromTime) + 'px; '
+                <div v-if="timeRow.id == 0" v-for="appointment in getFreeAppointments()" class="appointmentContainer" :key="appointment.id">
+                    <button class="appointment" @click="props.onClickAppointment(appointment)" :style="
+                        'height: ' + calculateHeightOfAppointment(appointment.fromTime, appointment.toTime) + 'px; top: ' + calculateTopOffsetOfAppointment(appointment.fromTime) + 'px; '
                     ">
                         {{ formatTime(appointment.fromTime) + " - " + formatTime(appointment.toTime) }} <br/>
                         <h3>{{ appointment.forename + " " + appointment.surname }}</h3>
                         {{ appointment.phoneNumber }} <br/> 
-                        {{ services.find((service) => service.id === appointment.serviceID).name }} <br/>
+                        {{ (props.services.find((service) => service.id === appointment.serviceID) || defaultValues).name }} <br/>
+                        <span style="color: var(--color-cold-white)">{{ appointment.comment }}</span>
+                    </button>
+                </div>
+            </td>
+            <td v-for="staff in props.team" :key="staff.id">
+                
+                <div class="addAppointmentContainer">
+                    <button class="addAppointmentButton" v-if="timeRow.id == 0" @click="props.onAddAppointment(staff.id)">+</button>
+                </div>
+                
+                <div v-if="timeRow.id == 0" v-for="appointment in getAppointments(staff.id)" class="appointmentContainer" :key="appointment.id">
+                    <button class="appointment" @click="props.onClickAppointment(appointment)" :style="
+                        'height: ' + calculateHeightOfAppointment(appointment.fromTime, appointment.toTime) + 'px; top: ' + (calculateTopOffsetOfAppointment(appointment.fromTime) + mousePosition.y) + 'px; left: ' + mousePosition.x + 'px;'
+                    ">
+                        {{ formatTime(appointment.fromTime) + " - " + formatTime(appointment.toTime) }} <br/>
+                        <h3>{{ appointment.forename + " " + appointment.surname }}</h3>
+                        {{ appointment.phoneNumber }} <br/> 
+                        {{ (props.services.find((service) => service.id === appointment.serviceID) || defaultValues).name }} <br/>
                         <span style="color: var(--color-cold-white)">{{ appointment.comment }}</span>
                     </button>
                 </div>
@@ -166,7 +194,7 @@ function formatTime(dateString) {
         max-width: 100px;
     }
 
-    .appoinment {
+    .appointment {
         background-color: var(--color-pink);
         transition: background-color 0.25s;
         width: 100%;
@@ -181,13 +209,14 @@ function formatTime(dateString) {
         font-size: 1em;
         position: absolute;
         /* max-height: 0px; */
+        overflow: hidden;
     }
 
-    .appoinment:hover {
+    .appointment:hover {
         background-color: var(--color-red);
     }
 
-    .appoinmentContainer {
+    .appointmentContainer {
         position: relative;
         width: 100%;
         max-height: 0px;

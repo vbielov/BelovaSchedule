@@ -61,7 +61,7 @@ function formatAppoimentInfo(date, service) {
         <label for="phone-input">Telefon:</label>
         <input id="phone-input" type="tel" value="" placeholder="e.g., +49123456789" pattern="(\+49)?[1-9][0-9]{1,14}" required>
         <label for="email-input">E-mail:</label>
-        <input id="email-input" type="text" value="" placeholder="..." required>
+        <input id="email-input" type="email" value="" placeholder="..." required>
         <label for="forename-input">Vorname:</label>
         <input id="forename-input" type="text" value="" placeholder="..." required>
         <label for="surname-input">Nachname:</label>
